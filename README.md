@@ -126,7 +126,7 @@ Cada iteración de carga y estrés contiene una petición. La mezcla es 70% lect
 - 30% `GET /bookings`.
 - 30% `POST /bookings`.
 
-Los `POST` usan fechas fuera del rango semilla para reducir conflictos accidentales entre usuarios virtuales; la prueba de humo conserva un caso explícito de conflicto `409`.
+Los `POST` usan una combinación determinista y única de laboratorio, fecha y bloque para cada VU e iteración; así la carga mide rendimiento y no falla por conflictos accidentales `409`. La prueba de humo conserva un caso explícito de conflicto `409` para comprobar la regla de negocio. Las solicitudes dinámicas usan un nombre de métrica estable para evitar series de métricas excesivas en k6.
 
 ### Umbrales y límites de seguridad
 

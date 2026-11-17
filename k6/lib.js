@@ -1,6 +1,7 @@
-// Utilidades compartidas por los scripts de k6 de ReservaFlow.
+// Utilidades compartidas por los scripts de k6 de LabReserve.
 import http from 'k6/http';
 import { check } from 'k6';
+import { createUniqueBookingPayload } from './booking-payload.js';
 
 export const BASE_URL = __ENV.BASE_URL || 'http://localhost:3001';
 const JSON_HEADERS = { headers: { 'Content-Type': 'application/json' } };
@@ -16,7 +17,7 @@ export function dateOffset(days) {
 // ---- Lectura 1: disponibilidad de laboratorios (fechas sembradas: hoy-120 .. hoy+120) ----
 export function getAvailability(tags = {}) {
   const url = `${BASE_URL}/laboratories/${randInt(1, 60)}/availability?date=${dateOffset(randInt(-120, 120))}`;
-  const res = http.get(url, { tags: { endpoint: 'availability', ...tags } });
+  const res = http.get(url, { tags: { name: 'GET /laboratories/:id/availability', endpoint: 'availability', ...tags } });
   check(res, {
     'availability: HTTP 200': (r) => r.status === 200,
     'availability: 12 franjas': (r) => r.status === 200 && r.json('slots').length === 12,
@@ -27,7 +28,7 @@ export function getAvailability(tags = {}) {
 // ---- Lectura 2: listado paginado de reservas confirmadas ----
 export function getList(tags = {}) {
   const url = `${BASE_URL}/bookings?page=${randInt(1, 20)}&pageSize=50&status=confirmed`;
-  const res = http.get(url, { tags: { endpoint: 'list', ...tags } });
+  const res = http.get(url, { tags: { name: 'GET /bookings', endpoint: 'list', ...tags } });
   check(res, {
     'list: HTTP 200': (r) => r.status === 200,
     'list: devuelve datos': (r) => {
@@ -38,19 +39,12 @@ export function getList(tags = {}) {
   return res;
 }
 
-// ---- Escritura: crear reserva en fechas NO sembradas (hoy+121 .. hoy+365) ----
+// ---- Escritura: crear reserva con clave única fuera del rango sembrado ----
 export function createReservation(tags = {}) {
-  const payload = JSON.stringify({
-    laboratoryId: randInt(1, 60),
-    teacherName: `k6-docente-${__VU}-${__ITER}`,
-    courseCode: `QA-${100 + (__ITER % 800)}`,
-    date: dateOffset(randInt(121, 365)),
-    slot: `M${randInt(1, 12)}`,
-    attendees: randInt(5, 12),
-  });
+  const payload = JSON.stringify(createUniqueBookingPayload(__VU, __ITER));
   const res = http.post(`${BASE_URL}/bookings`, payload, {
     ...JSON_HEADERS,
-    tags: { endpoint: 'create', ...tags },
+    tags: { name: 'POST /bookings', endpoint: 'create', ...tags },
   });
   check(res, {
     'create: HTTP 201': (r) => r.status === 201,
