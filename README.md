@@ -126,7 +126,7 @@ Cada iteración de carga y estrés contiene una petición. La mezcla es 70% lect
 - 30% `GET /bookings`.
 - 30% `POST /bookings`.
 
-Los `POST` usan una combinación determinista y única de laboratorio, fecha y bloque para cada VU e iteración; así la carga mide rendimiento y no falla por conflictos accidentales `409`. La prueba de humo conserva un caso explícito de conflicto `409` para comprobar la regla de negocio. Las solicitudes dinámicas usan un nombre de métrica estable para evitar series de métricas excesivas en k6.
+Los `POST` usan una combinación determinista y única de laboratorio, fecha y bloque para cada VU e iteración; así la carga mide rendimiento y no falla por conflictos accidentales `409`. Si se ejecutan dos escenarios consecutivos sobre el mismo volumen, asigna un `RUN_INDEX` distinto al segundo escenario. La prueba de humo conserva un caso explícito de conflicto `409` para comprobar la regla de negocio. Las solicitudes dinámicas usan un nombre de métrica estable para evitar series de métricas excesivas en k6.
 
 ### Umbrales y límites de seguridad
 
@@ -184,6 +184,7 @@ docker compose down -v
 $env:QUERY_MODE = 'baseline'
 docker compose up -d --build
 k6 run --summary-export=results/2026-11-16-baseline-stress-recovery.json k6/stress_recovery.js
+$env:RUN_INDEX = '1'
 k6 run --summary-export=results/2026-11-16-baseline-post-stress-smoke.json k6/smoke.js
 ```
 
@@ -225,6 +226,7 @@ $env:QUERY_MODE = 'optimized'
 docker compose up -d --build
 docker compose exec -T db psql -U labuser -d labreserve -f /db/v2_fix.sql
 k6 run --summary-export=results/2026-11-16-optimized-stress-recovery.json k6/stress_recovery.js
+$env:RUN_INDEX = '1'
 k6 run --summary-export=results/2026-11-16-optimized-post-stress-smoke.json k6/smoke.js
 ```
 

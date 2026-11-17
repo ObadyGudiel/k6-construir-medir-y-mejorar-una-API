@@ -2,6 +2,7 @@ const LABORATORY_COUNT = 60;
 const SLOT_COUNT = 12;
 const COMBINATIONS_PER_DAY = LABORATORY_COUNT * SLOT_COUNT;
 const VU_STRIDE = 1000;
+const RUN_SPAN_DAYS = 10_000;
 
 function formatDate(date) {
   return date.toISOString().slice(0, 10);
@@ -12,9 +13,10 @@ function formatDate(date) {
  * A sequence combines the VU and per-VU iteration; its date, laboratory
  * and slot mapping prevents normal load writes from colliding with each other.
  */
-export function createUniqueBookingPayload(vu, iteration, baseDate = new Date()) {
+export function createUniqueBookingPayload(vu, iteration, baseDate = new Date(), runIndex = 0) {
   const sequence = iteration * VU_STRIDE + (vu - 1);
-  const dayOffset = 1000 + Math.floor(sequence / COMBINATIONS_PER_DAY);
+  const runOffset = Number.isInteger(runIndex) && runIndex >= 0 ? runIndex * RUN_SPAN_DAYS : 0;
+  const dayOffset = 1000 + runOffset + Math.floor(sequence / COMBINATIONS_PER_DAY);
   const slotPosition = sequence % COMBINATIONS_PER_DAY;
   const date = new Date(baseDate.getTime() + dayOffset * 86_400_000);
 

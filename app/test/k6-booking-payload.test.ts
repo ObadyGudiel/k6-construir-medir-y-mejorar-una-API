@@ -14,3 +14,14 @@ test("creates distinct laboratory-date-slot keys for separate virtual-user itera
   assert.equal(new Set(keys).size, 3);
   assert.ok(payloads.every((payload) => payload.date > "2027-03-16"));
 });
+
+test("separates booking keys between consecutive k6 executions", () => {
+  const baseDate = new Date("2026-11-16T00:00:00.000Z");
+  const firstRun = createUniqueBookingPayload(1, 0, baseDate, 0);
+  const secondRun = createUniqueBookingPayload(1, 0, baseDate, 1);
+
+  assert.notEqual(
+    `${firstRun.laboratoryId}|${firstRun.date}|${firstRun.slot}`,
+    `${secondRun.laboratoryId}|${secondRun.date}|${secondRun.slot}`,
+  );
+});

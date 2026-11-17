@@ -41,7 +41,8 @@ export function getList(tags = {}) {
 
 // ---- Escritura: crear reserva con clave única fuera del rango sembrado ----
 export function createReservation(tags = {}) {
-  const payload = JSON.stringify(createUniqueBookingPayload(__VU, __ITER));
+  const runIndex = Number(__ENV.RUN_INDEX || 0);
+  const payload = JSON.stringify(createUniqueBookingPayload(__VU, __ITER, new Date(), runIndex));
   const res = http.post(`${BASE_URL}/bookings`, payload, {
     ...JSON_HEADERS,
     tags: { name: 'POST /bookings', endpoint: 'create', ...tags },
