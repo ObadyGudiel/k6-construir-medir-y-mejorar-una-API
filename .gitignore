@@ -1,0 +1,14 @@
+# Node and build output
+app/node_modules/
+app/dist/
+
+# Docker and local configuration
+.env
+
+# Generated test artifacts are added deliberately after verified LabReserve runs.
+results/*.json
+
+# Legacy artifacts from the prior project version; do not publish as LabReserve evidence.
+imgs/
+PLAN_DE_PRUEBAS.md
+INFORME_HALLAZGO_Y_MEJORA.md

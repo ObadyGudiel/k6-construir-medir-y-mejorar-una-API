@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: labreserve-db
+    environment:
+      POSTGRES_USER: labuser
+      POSTGRES_PASSWORD: labpass
+      POSTGRES_DB: labreserve
+    ports:
+      - "${DB_PORT:-5434}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./db:/db:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U labuser -d labreserve"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  api:
+    build: ./app
+    container_name: labreserve-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      QUERY_MODE: ${QUERY_MODE:-baseline}
+      DATABASE_URL: postgres://labuser:labpass@db:5432/labreserve
+      PORT: "3000"
+      PG_POOL_MAX: "10"
+    ports:
+      - "${HOST_PORT:-3001}:3000"
+
+volumes:
+  pgdata:
+
